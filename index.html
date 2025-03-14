@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClimaVista Pro</title>
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        /* General Body Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://www.w3schools.com/w3images/mountains.jpg') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+            overflow: hidden;
+        }
+
+        /* Overlay for text readability */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3); /* Semi-transparent black overlay */
+            z-index: -1;
+        }
+
+        /* Weather Container */
+        .weather-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 90%;
+            width: 600px;
+            box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header Styles */
+        .weather-header {
+            /*position: relative;*/
+            margin-bottom: 20px;
+        }
+
+        .weather-header h1 {
+            font-size: 28px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        /* Navigation Links */
+        .weather-header .auth-links {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .weather-header .auth-links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #4a90e2;
+            font-size: 14px;
+        }
+
+        .weather-header .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Input Styles */
+        .search-container input {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            width: calc(100% - 20px);
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .search-container button {
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .search-container button:hover {
+            background-color: #357abd;
+        }
+
+        /* Weather Info Section */
+        .weather-main {
+            margin-top: 20px;
+        }
+
+        .weather-main h2 {
+            font-size: 22px;
+            color: #4a90e2;
+        }
+
+        /* Details Box */
+        .weather-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .weather-info {
+            margin-bottom: 15px;
+        }
+
+        .weather-info span {
+            font-size: 30px;
+            color: #333;
+        }
+
+        .additional-info p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .additional-info span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Summary Box */
+        .weather-summary {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        /* Alerts and Insights */
+        #alerts, #seasonalInsights {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        #logoutBtn {
+            position: fixed; /* Position it in a fixed location */
+            top: 30px; /* Align it at the top */
+            right: 30px; /* Align it to the right */
+            background-color: #d9534f; /* Bootstrap danger color for alert */
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+
+        #logoutBtn:hover {
+            background-color: #c9302c; /* Darker red on hover */
+        }
+
+        #logoutBtn:focus {
+            outline: none; /* Remove focus outline */
+        }
+        /* Spinner */
+        #spinner {
+            font-size: 20px;
+            color: #4a90e2;
+            margin-top: 15px;
+            display: none;
+        }
+        .footer {
+            position: absolute; /* Absolute positioning */
+            bottom: 20px; /* Space from bottom */
+            right: 20px; /* Space from right */
+            font-size: 12px;
+            color: #fcfafa;
+            z-index: 1; /* Ensure it is above the background */
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            .weather-container {
+                width: 95%;
+                padding: 15px;
+            }
+
+            .weather-header h1 {
+                font-size: 24px;
+            }
+
+            .weather-header a {
+                font-size: 12px;
+            }
+
+            .search-container input, .search-container button {
+                width: 100%;
+            }
+
+            .weather-info span {
+                font-size: 24px;
+            }
+            .weather-header .auth-links a {
+                font-size: 12px;
+            }
+            .additional-info p {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay -->
+    <div class="overlay"></div>
+    <button id="logoutBtn" aria-label="Sign Out"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+    <div class="weather-container">
+        <header class="weather-header">
+            <h1>Welcome to ClimaVista_Pro{% if username %}, {{ username }}{% endif %}!</h1>
+            <div class="auth-links">
+                <a href='http://127.0.0.1:5000/login'>Login</a>
+                <a href='http://127.0.0.1:5000/register'>Register</a>
+                
+            </div>
+            
+        </header>
+
+        <div class="search-container">
+            <input type="text" placeholder="Enter city name" id="cityInput">
+            <input type="date" id="dateInput">
+            <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
+            <button id="predictBtn"><i class="fas fa-cloud"></i> Predict Weather</button>
+            <button id="seasonalBtn"><i class="fas fa-chart-line"></i> Seasonal Insights</button>
+            <button id="alertsBtn"><i class="fas fa-exclamation-triangle"></i> Check Alerts</button>
+            <button id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button> <!-- Refresh Button Added -->
+            <div id="alerts"></div>
+            <div id="seasonalInsights"></div>
+        </div>
+
+        <main class="weather-main">
+            <h2 id="cityName">City Name</h2>
+            <div class="weather-details">
+                <div class="weather-info">
+                    <span id="temperature">--°C</span>
+                    <span id="weatherDescription">Clear Sky</span>
+                </div>
+                <div class="additional-info">
+                    <p>Humidity: <span id="humidity">--%</span></p>
+                    <p>Wind Speed: <span id="windSpeed">-- km/h</span></p>
+                </div>
+                <div class="weather-summary">
+                    <p id="weatherSummary">Weather summary will appear here.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Spinner -->
+        <div id="spinner">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
+        </div>
+        
+    </div>
+    <div class="footer">
+        <p>Developed by Isha Thakur & Manshi Kumari</p> <!-- Replace 'Your Name' with your actual name -->
+    </div>
+    <script>
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const city = document.getElementById('cityInput').value;
+            const date = document.getElementById('dateInput').value;
+
+            if (city && date) {
+                document.getElementById('spinner').style.display = 'block';  // Show spinner
+
+                fetch('/get_weather', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `city=${city}&date=${date}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('spinner').style.display = 'none';  // Hide spinner
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('cityName').textContent = city;
+                        document.getElementById('temperature').textContent = `${data.temp}°C`;
+                        document.getElementById('weatherDescription').textContent = data.weather_description;
+                        document.getElementById('humidity').textContent = `${data.humidity}%`;
+                        document.getElementById('windSpeed').textContent = `${data.wind_speed} km/h`;
+                        document.getElementById('weatherSummary').textContent = data.summary;  // Update summary
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('spinner').style.display = 'none';  // Hide spinner
+                    alert(error.message);
+                });
+            } else {
+                alert("Please enter a city and select a date.");
+            }
+        });
+
+        document.getElementById('predictBtn').addEventListener('click', function() {
+            const city = document.getElementById('cityInput').value;
+            const date = document.getElementById('dateInput').value;
+
+            if (city && date) {
+                document.getElementById('spinner').style.display = 'block';  // Show spinner
+
+                fetch('/predict_weather', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `city=${city}&date=${date}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('spinner').style.display = 'none';  // Hide spinner
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('cityName').textContent = city;
+                        document.getElementById('temperature').textContent = `${data.temp}°C`;
+                        document.getElementById('weatherDescription').textContent = data.weather_description;
+                        document.getElementById('humidity').textContent = `${data.humidity}%`;
+                        document.getElementById('windSpeed').textContent = `${data.wind_speed} km/h`;
+                        document.getElementById('weatherSummary').textContent = data.summary;  // Update summary
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('spinner').style.display = 'none';  // Hide spinner
+                    alert(error.message);
+                });
+            } else {
+                alert("Please enter a city and select a date.");
+            }
+        });
+
+        document.getElementById('seasonalBtn').addEventListener('click', function() {
+            const city = document.getElementById('cityInput').value;
+            if (city) {
+                fetch('/get_seasonal_insights', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `city=${city}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Network response was not ok.');
+                    }
+                })
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('seasonalInsights').innerHTML = `<h3>Seasonal Insights:</h3><p>${data.insights}</p>`;
+                    }
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+            } else {
+                alert("Please enter a city.");
+            }
+        });
+
+        document.getElementById('alertsBtn').addEventListener('click', function() {
+            const city = document.getElementById('cityInput').value;
+            if (city) {
+                fetch('/get_alerts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `city=${city}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('alerts').innerHTML = `<h3>Weather Alerts:</h3><p>${data.alerts}</p>`;
+                    }
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+            } else {
+                alert("Please enter a city.");
+            }
+        });
+
+        // Refresh button functionality
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            location.reload();
+        });
+        // JavaScript to handle sign-out button
+document.getElementById('logoutBtn').addEventListener('click', function() {
+    fetch('/logout', {
+        method: 'POST'
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;  // Redirect to the login page
+        }
+    })
+    .catch(error => {
+        console.error('Error during logout:', error);
+        alert('Error during logout. Please try again.');
+    });
+});
+
+    </script>
+</body>
+</html>
